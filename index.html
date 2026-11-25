@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="WorldBridge generates RGB views and 3D geometry from scattered reference images. Explore synchronized video comparisons across imaginary and real-world scenes.">
+  <meta name="author" content="Weilong Yan, Jingyu Hu, Hongli Xu, Yifan Zhan, Beibei Lin, Anbang Wang, Qinqian Lei, Jingwei Huang, Robby T. Tan">
+  <meta name="robots" content="noindex,nofollow">
+  <title>WorldBridge · Bridging Scattered Views for Coherent 3D World Generation</title>
+  <link rel="icon" href="assets/favicon.png">
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="assets/scenes.js"></script>
+  <script defer src="viewer.js"></script>
+  <script defer src="page.js"></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<main id="main">
+  <!-- Layout reference: Eliahu Horwitz's Academic Project Page Template
+       https://github.com/eliahuhorwitz/Academic-project-page-template -->
+  <section class="publication wrap" aria-labelledby="hero-title">
+    <header class="publication-header">
+      <h1 id="hero-title" class="publication-title">
+        <img src="assets/logo.png" width="1366" height="300" alt="WorldBridge:">
+        <span>Bridging Scattered Views for Coherent 3D World Generation</span>
+      </h1>
+      <ul class="author-list" aria-label="Authors">
+        <li>Weilong Yan<sup>1,2,*</sup></li>
+        <li>Jingyu Hu<sup>3,†</sup></li>
+        <li>Hongli Xu<sup>2</sup></li>
+        <li>Yifan Zhan<sup>4</sup></li>
+        <li>Beibei Lin<sup>1</sup></li>
+        <li>Anbang Wang<sup>2</sup></li>
+        <li>Qinqian Lei<sup>1</sup></li>
+        <li>Jingwei Huang<sup>2,‡</sup></li>
+        <li>Robby T. Tan<sup>1</sup></li>
+      </ul>
+      <ul class="affiliations" aria-label="Affiliations">
+        <li><sup>1</sup>National University of Singapore</li>
+        <li><sup>2</sup>Tencent</li>
+        <li><sup>3</sup>The Chinese University of Hong Kong</li>
+        <li><sup>4</sup>The University of Tokyo</li>
+      </ul>
+      <p class="author-notes"><span><sup>*</sup> Work done during the internship at Tencent.</span> <span><sup>†</sup> Corresponding author.</span> <span><sup>‡</sup> Project leader.</span></p>
+      <nav class="publication-links" aria-label="Page sections">
+        <a href="#benchmarks">Benchmark</a>
+        <a href="#method">Method</a>
+        <a href="#capabilities">Capabilities</a>
+        <a href="#results">Results</a>
+        <a href="#comparisons">Video comparisons</a>
+        <a href="#point-clouds">Point clouds</a>
+      </nav>
+    </header>
+    <figure class="hero-demo">
+      <div class="hero-screen">
+        <video id="feature-video" poster="assets/bakery-sr-poster.webp" src="assets/bakery-sr-1512p.mp4" preload="none" muted playsinline aria-label="Super-resolved WorldBridge walkthrough from a bakery through an ink-drawn prep room to a botanical atrium"></video>
+        <div class="feature-caption" id="feature-caption"><span>Super-resolved walkthrough</span><b>Bakery to atrium</b></div>
+        <button type="button" id="feature-play" aria-label="Play bakery walkthrough"><span class="play-shape"></span></button>
+      </div>
+      <figcaption class="feature-refs"><div class="ref-label">Input references</div>
+        <figure><img src="comparisons/media/refs/04.jpg" width="640" height="360" alt="Bakery counter with bread and pastries"><figcaption>Bakery</figcaption></figure>
+        <figure><img src="comparisons/media/refs/05.jpg" width="640" height="360" alt="Ink drawing of a bakery prep room"><figcaption>Ink-drawn prep room</figcaption></figure>
+        <figure><img src="comparisons/media/refs/06.jpg" width="640" height="360" alt="Painted botanical atrium"><figcaption>Botanical atrium</figcaption></figure>
+      </figcaption>
+    </figure>
+    <p class="teaser-caption">WorldBridge starts with images that barely overlap and imagines what comes into view as the camera moves.</p>
+  </section>
+
+  <section id="benchmarks" class="wrap standard-section" aria-labelledby="dataset-heading">
+    <h2 id="dataset-heading" class="section-heading">WorldBridge benchmark</h2>
+    <div class="sample-grid">
+      <article class="sample-card" data-sample-set="short">
+        <h3>Short</h3><p>100 real clips, each with two endpoint views over 5–15 seconds.</p>
+        <img src="assets/benchmark/short-04.webp" alt="Shop aisle to pumpkin display, with two endpoint views and their camera path" loading="lazy">
+        <div class="sample-controls" hidden>
+          <select aria-label="Short benchmark sample">
+            <option>Bedroom to bathroom</option><option>Timber hall to blue counter</option><option>Entry to curved staircase</option><option selected>Shop aisle to pumpkin display</option><option>Courtyard to covered terrace</option>
+            <option>Dining area to pool</option><option>Activity room to pool</option><option>Lounge to ocean terrace</option><option>Balcony to dining table</option><option>Brick patio to dining room</option>
+            <option>Dining room to entryway</option><option>Living room to kitchen</option><option>Garden to kitchen</option><option>Hallway to bright bedroom</option><option>Corridor to blue bedroom</option>
+            <option>Church entrance to nave</option><option>Classroom to exit</option><option>Wooden porch to garden</option><option>Green doorway to laundry</option><option>Sidewalk to bus stop</option>
+          </select>
+        </div>
+      </article>
+      <article class="sample-card" data-sample-set="long">
+        <h3>Long</h3><p>20 real sequences, each with six references along a 20–60 second path.</p>
+        <img src="assets/benchmark/long-19.webp" alt="Tokyo neighborhood streets, with six reference views along a camera path" loading="lazy">
+        <div class="sample-controls" hidden>
+          <select aria-label="Long benchmark sample">
+            <option>Hallway and bedrooms</option><option>Bedrooms and stairwell</option><option>Basement rec room and office</option><option>Bedrooms and den</option><option>Utility room and living areas</option>
+            <option>Entry and bedrooms</option><option>Living room and home gym</option><option>Bedrooms and sitting rooms</option><option>Bath and open-plan kitchen</option><option>Bright bedrooms and bath</option>
+            <option>Umstead visitor center</option><option>Hautacam mountain road</option><option>American Lake woodland</option><option>Inniswood garden paths</option><option>Yuanmingyuan lakeside</option>
+            <option>Duke campus paths</option><option>Girraween rocky trail</option><option>Yates Mill trail</option><option selected>Tokyo neighborhood streets</option><option>Czech village drive</option>
+          </select>
+        </div>
+      </article>
+      <article class="sample-card" data-sample-set="agent">
+        <h3>Agent</h3><p>20 synthetic worlds, each with six references on or off the same target path.</p>
+        <img src="assets/benchmark/agent-on-07.webp" alt="Public library, with six on-path reference views and the target camera trajectory" loading="lazy">
+        <div class="sample-controls" hidden>
+          <select aria-label="Agent benchmark sample">
+            <option>Commercial street</option><option>Coastal trail</option><option>University campus</option><option>Outdoor market</option><option>Botanical garden</option>
+            <option>Design studio</option><option selected>Public library</option><option>Exhibition gallery</option><option>Transit terminal</option><option>Residence and study</option>
+          </select>
+          <select class="sample-pose" aria-label="Agent reference placement"><option value="on">On path</option><option value="off">Off path</option></select>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section id="method" class="method-section"><div class="wrap">
+    <h2 class="section-heading">Method</h2>
+    <figure class="architecture"><a href="assets/architecture.webp" aria-label="Open full-size architecture diagram"><img src="assets/architecture.webp" width="2350" height="717" loading="lazy" alt="Posed reference images pass through scene and reference encoders. A camera-conditioned scene reader guides a diffusion transformer to generate RGB and geometry."></a>
+      <figcaption>The scene encoder aggregates scattered references into a global representation, which the scene reader aligns to each view under RGB supervision. The diffusion transformer combines these features with encoded temporal and spatial references and text to generate RGB and geometry.</figcaption>
+    </figure>
+  </div></section>
+
+  <section id="capabilities" class="wrap standard-section" aria-labelledby="cap-title">
+    <h2 class="section-heading" id="cap-title">Capabilities</h2>
+    <div class="cap-options" role="group" aria-label="Capability">
+      <button type="button" data-cap="layout" aria-controls="cap-layout-scenes" aria-pressed="true">
+        <strong>Layout control</strong><span>By reference poses and camera path</span>
+      </button>
+      <button type="button" data-cap="text" aria-controls="cap-text-scenes" aria-pressed="false">
+        <strong>Text control</strong><span>In unobserved regions</span>
+      </button>
+      <button type="button" data-cap="sparse" aria-controls="cap-sparse-scenes" aria-pressed="false">
+        <strong>Sparse reconstruction</strong><span>From two reference views</span>
+      </button>
+    </div>
+    <div class="capability-layout">
+      <div id="cap-layout-scenes" class="cap-scenes" role="group" aria-label="Layout control scenes" data-alt="Input references, two camera trajectories and the corresponding point clouds and generated views.">
+        <button type="button" data-figure="assets/layout-control.webp" data-caption="Two camera paths connect the same bicycle workshop, photo archive and cactus courtyard." aria-pressed="true">
+          <img src="assets/capabilities/thumbs/bicycle-workshop.webp" width="68" height="38" alt="" loading="lazy"><span>Bicycle workshop</span>
+        </button>
+        <button type="button" data-figure="assets/capabilities/layout-art-garden.webp" data-caption="The mural and sculpture anchor the garden as the camera follows two different routes." aria-pressed="false">
+          <img src="assets/capabilities/thumbs/layout-art-garden.webp" width="68" height="38" alt="" loading="lazy"><span>Mediterranean art garden</span>
+        </button>
+        <button type="button" data-figure="assets/capabilities/radio-laboratory.webp" data-caption="Changing the reference poses and camera path rearranges the route from the radio lab through the mineral gallery to the alpine salon." aria-pressed="false">
+          <img src="assets/capabilities/thumbs/radio-laboratory.webp" width="68" height="38" alt="" loading="lazy"><span>Radio laboratory</span>
+        </button>
+        <button type="button" data-figure="assets/capabilities/ferry-terminal.webp" data-caption="Two routes link the ferry terminal, ceramics studio and tea garden." aria-pressed="false">
+          <img src="assets/capabilities/thumbs/ferry-terminal.webp" width="68" height="38" alt="" loading="lazy"><span>Ferry terminal</span>
+        </button>
+        <button type="button" data-figure="assets/capabilities/letterpress-studio.webp" data-caption="The camera takes different turns between the listening room, letterpress studio and garden theatre." aria-pressed="false">
+          <img src="assets/capabilities/thumbs/letterpress-studio.webp" width="68" height="38" alt="" loading="lazy"><span>Letterpress studio</span>
+        </button>
+        <button type="button" data-figure="assets/capabilities/citrus-greenhouse.webp" data-caption="Two camera trajectories connect the greenhouse, distillery and fish market." aria-pressed="false">
+          <img src="assets/capabilities/thumbs/citrus-greenhouse.webp" width="68" height="38" alt="" loading="lazy"><span>Citrus greenhouse</span>
+        </button>
+      </div>
+      <div id="cap-text-scenes" class="cap-scenes" role="group" aria-label="Text control scenes" data-alt="Shared input references and camera trajectory, with point clouds and generated views for two prompts." hidden>
+        <button type="button" data-figure="assets/text-control.webp" data-caption="The prompt fills the unseen part of the pavilion with a grand piano or a floral exhibition." aria-pressed="true">
+          <img src="assets/capabilities/thumbs/riverside-pavilion.webp" width="68" height="38" alt="" loading="lazy"><span>Riverside arts pavilion</span>
+        </button>
+        <button type="button" data-figure="assets/capabilities/text-art-garden.webp" data-caption="The same garden views lead to a sculpture court or a garden café." aria-pressed="false">
+          <img src="assets/capabilities/thumbs/text-art-garden.webp" width="68" height="38" alt="" loading="lazy"><span>Mediterranean art garden</span>
+        </button>
+        <button type="button" data-figure="assets/capabilities/harbour-workshop.webp" data-caption="The prompt specifies a harbour promenade or a pottery studio between the reference views." aria-pressed="false">
+          <img src="assets/capabilities/thumbs/harbour-workshop.webp" width="68" height="38" alt="" loading="lazy"><span>Harbour workshop</span>
+        </button>
+        <button type="button" data-figure="assets/capabilities/radio-station.webp" data-caption="The unseen space becomes a botanical conservatory or a machine workshop." aria-pressed="false">
+          <img src="assets/capabilities/thumbs/radio-station.webp" width="68" height="38" alt="" loading="lazy"><span>Radio station</span>
+        </button>
+        <button type="button" data-figure="assets/capabilities/garden-theatre.webp" data-caption="Two prompts fill the passage with a costume gallery or a cinema foyer." aria-pressed="false">
+          <img src="assets/capabilities/thumbs/garden-theatre.webp" width="68" height="38" alt="" loading="lazy"><span>Garden theatre</span>
+        </button>
+        <button type="button" data-figure="assets/capabilities/canyon-airfield.webp" data-caption="The prompt adds a lattice entry screen or a freight staging area along the same path." aria-pressed="false">
+          <img src="assets/capabilities/thumbs/canyon-airfield.webp" width="68" height="38" alt="" loading="lazy"><span>Canyon airfield</span>
+        </button>
+      </div>
+      <div id="cap-sparse-scenes" class="cap-scenes" role="group" aria-label="Sparse reconstruction scenes" data-alt="Two input views, camera trajectory, reconstructed point cloud and generated views." hidden>
+        <button type="button" data-figure="assets/sparse-reconstruction.webp" data-caption="The two photographs anchor the shelves and display table in the reconstructed aisle." aria-pressed="true">
+          <img src="assets/capabilities/thumbs/bookshop.webp" width="68" height="38" alt="" loading="lazy"><span>Bookshop aisle</span>
+        </button>
+        <button type="button" data-figure="assets/capabilities/living-room.webp" data-caption="Two views of the seating area and desk guide the reconstruction of the room." aria-pressed="false">
+          <img src="assets/capabilities/thumbs/living-room.webp" width="68" height="38" alt="" loading="lazy"><span>Living room</span>
+        </button>
+        <button type="button" data-figure="assets/capabilities/shared-office.webp" data-caption="Two desk views anchor the reconstruction of a shared workspace." aria-pressed="false">
+          <img src="assets/capabilities/thumbs/shared-office.webp" width="68" height="38" alt="" loading="lazy"><span>Shared office</span>
+        </button>
+        <button type="button" data-figure="assets/capabilities/library-court.webp" data-caption="Two views across the courtyard guide the reconstruction of the stone façade and archway." aria-pressed="false">
+          <img src="assets/capabilities/thumbs/library-court.webp" width="68" height="38" alt="" loading="lazy"><span>Library courtyard</span>
+        </button>
+        <button type="button" data-figure="assets/capabilities/historic-court.webp" data-caption="Two courtyard views anchor the building façades along the camera path." aria-pressed="false">
+          <img src="assets/capabilities/thumbs/historic-court.webp" width="68" height="38" alt="" loading="lazy"><span>Historic courtyard</span>
+        </button>
+        <button type="button" data-figure="assets/capabilities/kitchen.webp" data-caption="Two views connect the refrigerator, worktop and sink in one kitchen." aria-pressed="false">
+          <img src="assets/capabilities/thumbs/kitchen.webp" width="68" height="38" alt="" loading="lazy"><span>Kitchen</span>
+        </button>
+      </div>
+      <figure class="cap-figure">
+        <a id="cap-large" href="assets/layout-control.webp" aria-label="Open full-size figure for Bicycle workshop">
+          <img id="cap-image" src="assets/layout-control.webp" alt="Bicycle workshop. Input references, two camera trajectories and the corresponding point clouds and generated views." loading="lazy">
+        </a>
+        <figcaption id="cap-description" aria-live="polite">Two camera paths connect the same bicycle workshop, photo archive and cactus courtyard.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section id="results" class="wrap standard-section">
+    <div class="benchmark-top">
+      <h2 class="section-heading">Quantitative results</h2>
+      <div class="bench-switch" role="group" aria-label="Benchmark"><button type="button" data-bench="short" aria-pressed="true">Short</button><button type="button" data-bench="long" aria-pressed="false">Long</button><button type="button" data-bench="agent" aria-pressed="false">Agent</button></div>
+    </div>
+    <h3 class="sr-only" id="benchmark-title">WorldBridge-Short</h3><p id="benchmark-description"></p>
+    <div class="table-scroll" tabindex="0" role="region" aria-labelledby="benchmark-title"><table id="scores"></table></div>
+    <p class="limits"><strong>Limitations.</strong> Thin structures can fragment, and details can drift when off-path references barely overlap the target view.</p>
+  </section>
+
+  <section id="comparisons" class="comparison-section">
+    <div class="wrap">
+      <h2 class="section-heading">Video comparisons</h2>
+      <div id="viewer" class="viewer">
+        <div class="viewer-bar">
+          <div class="category-switch" role="group" aria-label="Scene collection">
+            <button type="button" data-category="imaginary" aria-pressed="true">Imaginary worlds</button>
+            <button type="button" data-category="real" aria-pressed="false">Real world</button>
+          </div>
+          <span id="collection-summary" class="collection-summary">8 worlds</span>
+        </div>
+        <div class="scene-strip" id="scene-strip" aria-label="Choose a scene"></div>
+        <div class="viewer-interior">
+          <div class="selection-row">
+            <div class="field scene-field"><label for="scene">Scene</label><select id="scene"></select></div>
+            <div id="placement-field" class="field"><span id="placement-label">Reference poses</span>
+              <div class="placement-switch" role="group" aria-labelledby="placement-label"><button type="button" data-placement="on" aria-pressed="true">On path</button><button type="button" data-placement="off" aria-pressed="false">Off path</button></div></div>
+            <div class="field baseline-field"><label for="baseline">Baseline</label><select id="baseline"></select></div>
+          </div>
+          <div class="playback-stage">
+            <div id="imaginary-outputs" class="output-grid">
+              <figure class="output"><figcaption><i class="method-dot"></i>WorldBridge</figcaption><video id="ours" muted playsinline preload="metadata" aria-label="WorldBridge output"></video></figure>
+              <figure class="output"><figcaption><i class="method-dot other"></i><span data-method-label>SEVA</span></figcaption><video id="other" muted playsinline preload="metadata" aria-label="Baseline output"></video></figure>
+            </div>
+            <div id="real-outputs" class="output-grid triple" hidden>
+              <figure class="output"><figcaption><i class="method-dot gt"></i>Ground truth</figcaption><canvas width="640" height="360" aria-label="Ground truth target"></canvas></figure>
+              <figure class="output"><figcaption><i class="method-dot"></i>WorldBridge</figcaption><canvas width="640" height="360" aria-label="WorldBridge output"></canvas></figure>
+              <figure class="output"><figcaption><i class="method-dot other"></i><span data-method-label>SEVA</span></figcaption><canvas width="640" height="360" aria-label="Baseline output"></canvas></figure>
+            </div>
+            <video id="mosaic" muted playsinline preload="metadata" hidden></video>
+            <div class="transport">
+              <button id="play" type="button" class="play-button" disabled><span class="play-shape" aria-hidden="true"></span><span id="play-label">Play together</span></button>
+              <label class="sr-only" for="timeline">Comparison frame</label><input id="timeline" type="range" min="0" max="76" value="0" step="1" disabled>
+              <output for="timeline" id="frame-count">01 / 77</output>
+            </div>
+          </div>
+          <p id="media-status" class="media-status" role="status" hidden></p>
+          <details class="pose-details" id="pose-details" open><summary>Input references &amp; camera trajectory</summary>
+            <div class="pose-grid"><div id="references" class="references"></div><div class="route-wrap"><svg id="route" viewBox="22 163 596 176" role="img" aria-label="Target path, input camera poses and current camera position"></svg><span id="pose-caption"></span></div></div>
+          </details>
+        </div>
+      </div>
+      <noscript><p>Enable JavaScript for synchronized playback.</p></noscript>
+    </div>
+  </section>
+
+  <section id="point-clouds" class="wrap standard-section" aria-labelledby="cloud-heading">
+    <h2 id="cloud-heading" class="section-heading">Point cloud comparisons</h2>
+    <div class="cloud-controls" hidden>
+      <label class="field">Scene
+        <select id="cloud-scene">
+          <optgroup label="WorldBridge-Long">
+            <option value="duke-campus">Duke campus paths</option><option value="pink-bedroom">Pink bedroom and desk</option>
+            <option value="tokyo-streets">Tokyo neighborhood streets</option><option value="bedroom-hallway">Bedroom and hallway</option>
+            <option value="bedrooms-stairwell">Bedrooms and stairwell</option><option value="basement-office">Basement rec room and office</option>
+          </optgroup>
+          <optgroup label="WorldBridge-Agent" data-placement>
+            <option value="library" selected>Public library</option><option value="gallery">Exhibition gallery</option><option value="plaza">Civic plaza</option>
+          </optgroup>
+        </select>
+      </label>
+      <label class="field" id="cloud-pose-field">Reference poses
+        <select id="cloud-pose"><option value="on">On path</option><option value="off">Off path</option></select>
+      </label>
+      <label class="field">Baseline
+        <select id="cloud-baseline"><option value="gae">GAE</option><option value="gld">GLD</option><option value="gen3r">Gen3R</option><option value="3drae">3DRAE</option></select>
+      </label>
+    </div>
+    <div class="cloud-inputs with-whitebox" aria-label="Scene inputs" role="group">
+      <div class="cloud-input-panel">
+        <h3>Reference frames</h3>
+        <div class="cloud-ref-strip">
+          <a href="assets/cloud-inputs/library-on-r1.webp"><img src="assets/cloud-inputs/library-on-r1.webp" alt="Public library (on-path), reference frame 1" loading="lazy"><span aria-hidden="true">R1</span></a>
+          <a href="assets/cloud-inputs/library-on-r2.webp"><img src="assets/cloud-inputs/library-on-r2.webp" alt="Public library (on-path), reference frame 2" loading="lazy"><span aria-hidden="true">R2</span></a>
+          <a href="assets/cloud-inputs/library-on-r3.webp"><img src="assets/cloud-inputs/library-on-r3.webp" alt="Public library (on-path), reference frame 3" loading="lazy"><span aria-hidden="true">R3</span></a>
+          <a href="assets/cloud-inputs/library-on-r4.webp"><img src="assets/cloud-inputs/library-on-r4.webp" alt="Public library (on-path), reference frame 4" loading="lazy"><span aria-hidden="true">R4</span></a>
+          <a href="assets/cloud-inputs/library-on-r5.webp"><img src="assets/cloud-inputs/library-on-r5.webp" alt="Public library (on-path), reference frame 5" loading="lazy"><span aria-hidden="true">R5</span></a>
+          <a href="assets/cloud-inputs/library-on-r6.webp"><img src="assets/cloud-inputs/library-on-r6.webp" alt="Public library (on-path), reference frame 6" loading="lazy"><span aria-hidden="true">R6</span></a>
+        </div>
+      </div>
+      <div class="cloud-input-panel cloud-diagram" id="cloud-whitebox">
+        <h3>Scene whitebox</h3>
+        <a href="assets/cloud-inputs/library-whitebox.webp"><img src="assets/cloud-inputs/library-whitebox.webp" alt="Public library, authored scene whitebox" loading="lazy"></a>
+      </div>
+      <div class="cloud-input-panel cloud-diagram" id="cloud-trajectory">
+        <h3>Camera trajectory</h3>
+        <a href="assets/cloud-inputs/library-on-path.webp"><img src="assets/cloud-inputs/library-on-path.webp" alt="Public library (on-path), target camera trajectory and six reference poses" loading="lazy"></a>
+      </div>
+    </div>
+    <div class="cloud-grid paired">
+      <figure class="cloud-panel" data-cloud="worldbridge">
+        <figcaption>WorldBridge</figcaption>
+        <a href="assets/point-clouds/library-on-worldbridge.webp"><img src="assets/point-clouds/library-on-worldbridge.webp" loading="lazy" alt="Public library (on-path), WorldBridge point cloud and enlarged local view"></a>
+      </figure>
+      <figure class="cloud-panel" data-cloud="baseline">
+        <figcaption>GAE</figcaption>
+        <a href="assets/point-clouds/library-on-gae.webp"><img src="assets/point-clouds/library-on-gae.webp" loading="lazy" alt="Public library (on-path), GAE point cloud and enlarged local view"></a>
+      </figure>
+      <figure class="cloud-panel" data-cloud="da3" hidden>
+        <figcaption>Reference (DA3)</figcaption>
+        <a href="assets/point-clouds/duke-campus-da3.webp"><img src="assets/point-clouds/duke-campus-da3.webp" loading="lazy" alt="Duke campus paths, DA3 reconstruction of captured views and bicycle close-up"></a>
+      </figure>
+    </div>
+    <p class="cloud-note">The lower views enlarge the boxed regions.</p>
+  </section>
+</main>
+<footer><div class="wrap footer-inner"><a class="brand" href="#main" aria-label="WorldBridge home"><img src="assets/logo.png" width="1366" height="300" alt="WorldBridge"></a></div></footer>
+</body>
+</html>
